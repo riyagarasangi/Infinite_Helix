@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block header %}Module 6 - Cloud IAM Security Review{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h3>How it works</h3>
+  <p>
+    We ship two sample AWS-style IAM policies under <code>data/</code>:
+    an intentionally-bad one (full access to everyone) and a properly
+    scoped least-privilege policy. The backend scores each policy on
+    wildcards, public principals, and missing conditions.
+  </p>
+</div>
+
+<div class="grid two">
+  <div class="card fail">
+    <h3>Insecure policy</h3>
+    <p>
+      Name: <code>{{ data.insecure.policy.PolicyName }}</code>
+      &middot; Risk: <b>{{ data.insecure.analysis.risk_score }}/100</b>
+      &middot; Rating: <span class="risk-high">{{ data.insecure.analysis.rating }}</span>
+    </p>
+    <pre class="code">{{ data.insecure.policy | tojson(indent=2) }}</pre>
+    <h4>Why it's dangerous</h4>
+    <ul class="findings">
+      {% for r in data.insecure.analysis.reasons %}<li>{{ r }}</li>{% endfor %}
+    </ul>
+  </div>
+
+  <div class="card ok">
+    <h3>Secure policy</h3>
+    <p>
+      Name: <code>{{ data.secure.policy.PolicyName }}</code>
+      &middot; Risk: <b>{{ data.secure.analysis.risk_score }}/100</b>
+      &middot; Rating: <span class="risk-low">{{ data.secure.analysis.rating }}</span>
+    </p>
+    <pre class="code">{{ data.secure.policy | tojson(indent=2) }}</pre>
+    <h4>Why it's safer</h4>
+    <ul class="findings">
+      {% for b in data.secure.policy._benefits %}<li>{{ b }}</li>{% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Recommendations</h3>
+  <ul class="findings">
+    {% for r in data.recommendations %}<li>{{ r }}</li>{% endfor %}
+  </ul>
+</div>
+{% endblock %}

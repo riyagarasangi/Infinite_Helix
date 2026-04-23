@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "PolicyName": "RetailStore-FullAccess-INSECURE",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "*",
+      "Resource": "*",
+      "Principal": {
+        "AWS": "*"
+      }
+    }
+  ],
+  "_issues": [
+    "Grants ALL actions (*) on ALL resources (*).",
+    "Principal is `*` which allows anyone (public).",
+    "Violates the principle of least privilege.",
+    "A single stolen key gives the attacker full control of the AWS account."
+  ]
+}

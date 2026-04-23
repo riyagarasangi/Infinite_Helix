@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block header %}Module 5 - ML Anomaly Detection{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h3>How it works</h3>
+  <p>
+    We generated a synthetic dataset of store-network traffic with four
+    features: <code>packet_size</code>, <code>req_per_sec</code>,
+    <code>failed_logins</code>, <code>unusual_port</code>. An
+    <b>Isolation Forest</b> model (sklearn) learns what "normal" looks
+    like and flags everything else as an anomaly.
+  </p>
+</div>
+
+<div class="grid four">
+  <div class="stat stat-big"><div class="stat-num">{{ data.total }}</div><div class="stat-lbl">Rows</div></div>
+  <div class="stat stat-big"><div class="stat-num">{{ data.anomalies }}</div><div class="stat-lbl">Anomalies</div></div>
+  <div class="stat stat-big"><div class="stat-num">{{ data.true_positives }}</div><div class="stat-lbl">True positives</div></div>
+  <div class="stat stat-big"><div class="stat-num">{{ data.false_positives }}</div><div class="stat-lbl">False positives</div></div>
+</div>
+
+<div class="grid two">
+  <div class="card">
+    <h3>Anomaly score distribution</h3>
+    <canvas id="scoreChart" height="200"></canvas>
+  </div>
+  <div class="card">
+    <h3>Normal vs. Anomaly</h3>
+    <canvas id="pieChart" height="200"></canvas>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Check a custom record</h3>
+  <form method="post" class="login-form inline">
+    <label>packet_size <input type="number" step="1" name="packet_size" value="{{ one_result.input.packet_size if one_result else 8000 }}"></label>
+    <label>req_per_sec <input type="number" step="0.1" name="req_per_sec" value="{{ one_result.input.req_per_sec if one_result else 120 }}"></label>
+    <label>failed_logins <input type="number" step="1" name="failed_logins" value="{{ one_result.input.failed_logins if one_result else 0 }}"></label>
+    <label>unusual_port
+      <select name="unusual_port">
+        <option value="0" {% if one_result and one_result.input.unusual_port == '0' %}selected{% endif %}>0 - normal</option>
+        <option value="1" {% if one_result and one_result.input.unusual_port == '1' %}selected{% endif %}>1 - unusual</option>
+      </select>
+    </label>
+    <button class="btn btn-primary">Predict</button>
+  </form>
+  {% if one_result %}
+    <div class="pred-box {% if one_result.label == 'anomaly' %}fail{% else %}ok{% endif %}">
+      Prediction: <b>{{ one_result.label|upper }}</b>
+      &middot; score = {{ one_result.score }}
+    </div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3>Sample predictions</h3>
+  <div class="table-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          {% for f in data.features %}<th>{{ f }}</th>{% endfor %}
+          <th>True label</th><th>Prediction</th><th>Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in data.sample %}
+          <tr class="row-{{ 'high' if row.prediction == 'anomaly' else 'low' }}">
+            {% for f in data.features %}<td>{{ row[f] }}</td>{% endfor %}
+            <td>{{ 'attack' if row.label == 1 else 'normal' }}</td>
+            <td><span class="risk-{{ 'high' if row.prediction == 'anomaly' else 'low' }}">{{ row.prediction }}</span></td>
+            <td>{{ row.score }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  const SCORE_BINS = {{ data.score_bins|tojson }};
+  const NORMAL = {{ data.normal }};
+  const ANOM   = {{ data.anomalies }};
+</script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

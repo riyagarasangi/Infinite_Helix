@@ -1,0 +1,112 @@
+[
+  {
+    "no": 1,
+    "time": "0.000001",
+    "src_ip": "192.168.1.10",
+    "dst_ip": "192.168.1.1",
+    "protocol": "DNS",
+    "length": 74,
+    "info": "Standard query A store-api.local",
+    "credentials": null,
+    "risk": "low"
+  },
+  {
+    "no": 2,
+    "time": "0.125400",
+    "src_ip": "192.168.1.10",
+    "dst_ip": "54.210.11.88",
+    "protocol": "TCP",
+    "length": 66,
+    "info": "SYN Seq=0 Win=64240 Len=0",
+    "credentials": null,
+    "risk": "low"
+  },
+  {
+    "no": 3,
+    "time": "0.210500",
+    "src_ip": "192.168.1.10",
+    "dst_ip": "54.210.11.88",
+    "protocol": "HTTP",
+    "length": 412,
+    "info": "POST /login HTTP/1.1  user=admin&pass=admin123",
+    "credentials": "admin / admin123",
+    "risk": "high"
+  },
+  {
+    "no": 4,
+    "time": "0.305120",
+    "src_ip": "54.210.11.88",
+    "dst_ip": "192.168.1.10",
+    "protocol": "HTTP",
+    "length": 290,
+    "info": "200 OK Set-Cookie: SESSIONID=abc123 (Plain text)",
+    "credentials": "SESSIONID=abc123",
+    "risk": "high"
+  },
+  {
+    "no": 5,
+    "time": "0.480911",
+    "src_ip": "192.168.1.15",
+    "dst_ip": "192.168.1.40",
+    "protocol": "MQTT",
+    "length": 120,
+    "info": "PUBLISH topic=store/sensor/fridge payload={temp:4.5}",
+    "credentials": null,
+    "risk": "medium"
+  },
+  {
+    "no": 6,
+    "time": "0.550244",
+    "src_ip": "192.168.1.15",
+    "dst_ip": "192.168.1.40",
+    "protocol": "MQTT",
+    "length": 142,
+    "info": "PUBLISH topic=store/sensor/door payload=UNLOCK (unauth)",
+    "credentials": null,
+    "risk": "high"
+  },
+  {
+    "no": 7,
+    "time": "0.700830",
+    "src_ip": "192.168.1.10",
+    "dst_ip": "54.210.11.88",
+    "protocol": "TLSv1.3",
+    "length": 517,
+    "info": "Application Data (encrypted)",
+    "credentials": null,
+    "risk": "low"
+  },
+  {
+    "no": 8,
+    "time": "0.810500",
+    "src_ip": "203.0.113.45",
+    "dst_ip": "192.168.1.10",
+    "protocol": "TCP",
+    "length": 60,
+    "info": "Port scan attempt: SYN to 22,23,445,3389",
+    "credentials": null,
+    "risk": "high"
+  },
+  {
+    "no": 9,
+    "time": "0.951122",
+    "src_ip": "192.168.1.10",
+    "dst_ip": "54.210.11.88",
+    "protocol": "HTTP",
+    "length": 388,
+    "info": "GET /billing?id=1' OR '1'='1",
+    "credentials": null,
+    "risk": "high"
+  },
+  {
+    "no": 10,
+    "time": "1.014200",
+    "src_ip": "192.168.1.20",
+    "dst_ip": "8.8.8.8",
+    "protocol": "DNS",
+    "length": 82,
+    "info": "Standard query A malware-c2.ru",
+    "credentials": null,
+    "risk": "high"
+  }
+]

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block header %}Module 4 - MQTT IoT Inventory Security{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h3>How it works</h3>
+  <p>
+    Store sensors (fridge temperature, shelf weight, entry door) talk to
+    a central controller over MQTT. We simulate two versions side by
+    side:
+  </p>
+  <ul>
+    <li><b>Insecure:</b> no auth, no TLS, plain payloads. Attacker can spoof messages.</li>
+    <li><b>Secure:</b> username/password + TLS 1.3 + HMAC-SHA256 signed payloads.</li>
+  </ul>
+  <button class="btn btn-primary" id="refreshMqtt">Refresh sensor feed</button>
+</div>
+
+<div class="grid two">
+  <div class="card fail">
+    <h3>Insecure MQTT</h3>
+    <ul class="kv">
+      {% for k,v in data.insecure.config.items() %}
+        <li><span>{{ k }}</span><b>{{ v }}</b></li>
+      {% endfor %}
+    </ul>
+    <h4>Recent messages</h4>
+    <table class="tbl mqtt-insecure">
+      <thead><tr><th>Time</th><th>Topic</th><th>Payload</th></tr></thead>
+      <tbody>
+        {% for m in data.insecure.messages %}
+          <tr><td>{{ m.timestamp }}</td><td>{{ m.topic }}</td><td class="mono">{{ m.payload }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h4>Issues</h4>
+    <ul class="findings">{% for i in data.insecure.issues %}<li>{{ i }}</li>{% endfor %}</ul>
+  </div>
+
+  <div class="card ok">
+    <h3>Secure MQTT</h3>
+    <ul class="kv">
+      {% for k,v in data.secure.config.items() %}
+        <li><span>{{ k }}</span><b>{{ v }}</b></li>
+      {% endfor %}
+    </ul>
+    <h4>Recent messages</h4>
+    <table class="tbl mqtt-secure">
+      <thead><tr><th>Time</th><th>Topic</th><th>Payload</th><th>Signature</th></tr></thead>
+      <tbody>
+        {% for m in data.secure.messages %}
+          <tr>
+            <td>{{ m.timestamp }}</td>
+            <td>{{ m.topic }}</td>
+            <td class="mono">{{ m.payload }}</td>
+            <td class="mono">{{ m.signature }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h4>Protections</h4>
+    <ul class="findings">{% for i in data.secure.protections %}<li>{{ i }}</li>{% endfor %}</ul>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("refreshMqtt").addEventListener("click", async () => {
+  const r = await fetch("/api/mqtt/refresh");
+  const json = await r.json();
+  renderMqttTables(json);
+});
+</script>
+{% endblock %}

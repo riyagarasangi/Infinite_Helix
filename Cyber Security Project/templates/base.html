@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Smart Retail Store Security Audit{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">SR</div>
+      <div>
+        <div class="brand-title">Smart Retail</div>
+        <div class="brand-sub">Security Audit</div>
+      </div>
+    </div>
+
+    <nav>
+      <a class="nav-item {% if not active %}active{% endif %}" href="/">Dashboard</a>
+      {% for m in modules %}
+        <a class="nav-item {% if active == m.id %}active{% endif %}" href="{{ m.url }}">
+          <span class="nav-icon">{{ m.icon }}</span>
+          <span>{{ m.title }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+
+    <div class="sidebar-foot">Academic demo - do NOT use in production.</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <h1>{% block header %}Smart Retail Store Security Audit{% endblock %}</h1>
+      <div class="topbar-meta">Flask &middot; SQLite &middot; scikit-learn &middot; MQTT</div>
+    </header>
+
+    <section class="content">
+      {% block content %}{% endblock %}
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

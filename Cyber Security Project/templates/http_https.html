@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block header %}Module 3 - HTTP vs HTTPS Credential Sniffing{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h3>How it works</h3>
+  <p>
+    We simulate what an attacker on the same Wi-Fi network would see
+    when a cashier logs in over plain HTTP vs. HTTPS. The HTTP request
+    exposes the password directly; the HTTPS request only shows
+    encrypted TLS bytes. We also show the salted hash the server stores
+    internally.
+  </p>
+  <form method="get" class="login-form inline">
+    <label>Username <input name="username" value="{{ username }}"></label>
+    <label>Password <input name="password" value="{{ password }}"></label>
+    <button class="btn btn-primary">Re-compute</button>
+  </form>
+</div>
+
+<div class="grid two">
+  <div class="card fail">
+    <h3>HTTP (insecure)</h3>
+    <p>URL: <code>{{ data.http.url }}</code></p>
+    <p>Method: <code>{{ data.http.method }}</code></p>
+    <p>What a sniffer on the network sees:</p>
+    <pre class="code">{{ data.http.body_raw }}</pre>
+    <p class="warn-text">Password visible in plain text.</p>
+  </div>
+
+  <div class="card ok">
+    <h3>HTTPS (secure)</h3>
+    <p>URL: <code>{{ data.https.url }}</code></p>
+    <p>TLS: <code>{{ data.https.tls_version }}</code></p>
+    <p>What a sniffer on the network sees:</p>
+    <pre class="code">{{ data.https.body_raw_on_wire }}</pre>
+    <p>Server stores only a salted hash:</p>
+    <pre class="code">salt: {{ data.https.server_stored_hash_demo.salt }}
+hash: {{ data.https.server_stored_hash_demo.hash }}
+algo: {{ data.https.server_stored_hash_demo.algo }}</pre>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Key takeaways</h3>
+  <ul class="findings">
+    {% for s in data.summary %}<li>{{ s }}</li>{% endfor %}
+  </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{
+  "http_request": {
+    "url": "http://retailstore.local/login",
+    "method": "POST",
+    "headers": {
+      "Host": "retailstore.local",
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": "Mozilla/5.0"
+    },
+    "body_raw": "username=cashier&password=cash@123",
+    "credentials_visible": true,
+    "notes": "Password is transmitted in PLAIN TEXT. Anyone sniffing traffic (e.g. on open Wi-Fi) can read it."
+  },
+  "https_request": {
+    "url": "https://retailstore.local/login",
+    "method": "POST",
+    "headers": {
+      "Host": "retailstore.local",
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": "Mozilla/5.0"
+    },
+    "tls_version": "TLSv1.3",
+    "body_raw_on_wire": "17 03 03 00 4a d4 7a ... (encrypted application data)",
+    "credentials_visible": false,
+    "server_stored_hash": "sha256:3a7bd3e2360a3b8c6c3f4b0f2b1c5d9e...",
+    "notes": "Body is encrypted in transit by TLS. Server stores only a SALTED HASH of the password."
+  }
+}

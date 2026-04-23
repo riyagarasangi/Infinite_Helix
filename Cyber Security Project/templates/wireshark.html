@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block header %}Module 1 - Wireshark Traffic Simulation{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h3>How it works</h3>
+  <p>
+    We ship a pre-captured packet log (<code>data/sample_packets.json</code>)
+    that mimics what Wireshark would show for a small retail LAN. The
+    backend parses every packet, counts protocols / risk levels, and
+    highlights the ones that leak credentials or contain attack patterns.
+  </p>
+</div>
+
+<div class="grid two">
+  <div class="card">
+    <h3>Protocol breakdown</h3>
+    <ul class="kv">
+      {% for proto, c in data.protocol_counts.items() %}
+        <li><span>{{ proto }}</span><b>{{ c }}</b></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Risk breakdown</h3>
+    <ul class="kv">
+      {% for r, c in data.risk_counts.items() %}
+        <li><span class="risk-{{ r }}">{{ r|upper }}</span><b>{{ c }}</b></li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Security findings</h3>
+  <ul class="findings">
+    {% for f in data.findings %}<li>{{ f }}</li>{% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h3>Captured packets</h3>
+  <div class="table-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>#</th><th>Time</th><th>Source</th><th>Destination</th>
+          <th>Proto</th><th>Len</th><th>Info</th><th>Risk</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in data.packets %}
+          <tr class="row-{{ p.risk }}">
+            <td>{{ p.no }}</td>
+            <td>{{ p.time }}</td>
+            <td>{{ p.src_ip }}</td>
+            <td>{{ p.dst_ip }}</td>
+            <td><span class="pill">{{ p.protocol }}</span></td>
+            <td>{{ p.length }}</td>
+            <td class="mono">{{ p.info }}</td>
+            <td><span class="risk-{{ p.risk }}">{{ p.risk|upper }}</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if data.credential_leaks %}
+<div class="card warn">
+  <h3>Credentials visible in capture</h3>
+  <ul>
+    {% for c in data.credential_leaks %}
+      <li>Packet #{{ c.no }} ({{ c.protocol }}) -&gt; <code>{{ c.credentials }}</code></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,47 @@
+{
+  "Version": "2012-10-17",
+  "PolicyName": "RetailStore-BillingUser-LeastPrivilege",
+  "Statement": [
+    {
+      "Sid": "ReadBillingObjectsOnly",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::retail-billing-prod",
+        "arn:aws:s3:::retail-billing-prod/*"
+      ]
+    },
+    {
+      "Sid": "WriteInvoicesOnlyToInvoicesPrefix",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::retail-billing-prod/invoices/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:SourceVpc": "vpc-0abc12345"
+        }
+      }
+    },
+    {
+      "Sid": "DenyDeletes",
+      "Effect": "Deny",
+      "Action": [
+        "s3:DeleteObject",
+        "s3:DeleteBucket"
+      ],
+      "Resource": "*"
+    }
+  ],
+  "_benefits": [
+    "Uses specific Actions instead of '*'.",
+    "Scoped to one bucket (retail-billing-prod) instead of all resources.",
+    "Writes are restricted to a single VPC (network control).",
+    "Explicit Deny on destructive actions = defense in depth.",
+    "Follows the principle of least privilege."
+  ]
+}

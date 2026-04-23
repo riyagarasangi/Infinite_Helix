@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block header %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <h2>Smart Retail Store Security Audit</h2>
+  <p>
+    This project audits a fictional smart retail store across six
+    cybersecurity angles: network sniffing, SQL injection, transport
+    encryption, IoT/MQTT, machine-learning anomaly detection, and cloud
+    IAM. Pick any module on the left to explore the attack and the fix.
+  </p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">6</div><div class="stat-lbl">Modules</div></div>
+    <div class="stat"><div class="stat-num">2</div><div class="stat-lbl">Attack demos</div></div>
+    <div class="stat"><div class="stat-num">1</div><div class="stat-lbl">ML model</div></div>
+    <div class="stat"><div class="stat-num">2</div><div class="stat-lbl">IAM policies</div></div>
+  </div>
+</div>
+
+<div class="grid">
+  {% for m in modules %}
+    <a class="card module-card" href="{{ m.url }}">
+      <div class="card-icon">{{ m.icon }}</div>
+      <h3>{{ m.title }}</h3>
+      <p>{{ m.desc }}</p>
+      <span class="open">Open module -&gt;</span>
+    </a>
+  {% endfor %}
+</div>
+{% endblock %}

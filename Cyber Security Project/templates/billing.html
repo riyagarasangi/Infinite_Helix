@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block header %}Module 2 - SQL Injection on Billing Login{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h3>How it works</h3>
+  <p>
+    The billing system stores cashiers in a SQLite <code>users</code>
+    table. Two login functions live in <code>modules/billing_login.py</code>:
+  </p>
+  <ul>
+    <li><b>Vulnerable:</b> builds SQL by string concatenation.</li>
+    <li><b>Secure:</b> uses a parameterized query (<code>?</code> placeholders).</li>
+  </ul>
+  <p>
+    Try this payload in the <b>Vulnerable</b> tab to bypass login:
+    <code>username = admin' OR '1'='1 --</code> , <code>password = anything</code>.
+    Then switch to <b>Secure</b> and try the same payload - it will fail,
+    because the injection is treated as a literal string.
+  </p>
+</div>
+
+<div class="card">
+  <div class="tabs">
+    <a class="tab {% if mode == 'vulnerable' %}active{% endif %}"
+       href="?mode=vulnerable">Vulnerable login</a>
+    <a class="tab {% if mode == 'secure' %}active{% endif %}"
+       href="?mode=secure">Secure login</a>
+  </div>
+
+  <form method="post" class="login-form">
+    <input type="hidden" name="mode" value="{{ mode }}">
+    <label>Username
+      <input name="username" value="{{ username }}" placeholder="admin' OR '1'='1 --">
+    </label>
+    <label>Password
+      <input name="password" value="{{ password }}" placeholder="anything">
+    </label>
+    <button class="btn {% if mode == 'vulnerable' %}btn-danger{% else %}btn-primary{% endif %}">
+      {% if mode == 'vulnerable' %}Try vulnerable login{% else %}Try secure login{% endif %}
+    </button>
+  </form>
+
+  <div class="hint">
+    Seeded users: <code>admin / admin123</code>,
+    <code>cashier / cash@123</code>, <code>manager / mgr2024</code>
+  </div>
+</div>
+
+{% if result %}
+<div class="card {% if result.success and mode == 'vulnerable' and result.rows|length > 1 %}warn{% elif result.success %}ok{% else %}fail{% endif %}">
+  <h3>Result</h3>
+  <p>{{ result.message }}</p>
+  <h4>SQL executed</h4>
+  <pre class="code">{{ result.query }}</pre>
+  {% if result.rows %}
+    <h4>Rows returned</h4>
+    <table class="tbl">
+      <thead><tr><th>ID</th><th>Username</th><th>Role</th></tr></thead>
+      <tbody>
+        {% for r in result.rows %}
+          <tr><td>{{ r.id }}</td><td>{{ r.username }}</td><td>{{ r.role }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
