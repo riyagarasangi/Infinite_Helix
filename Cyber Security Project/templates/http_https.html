@@ -14,7 +14,10 @@
   <form method="get" class="login-form inline">
     <label>Username <input name="username" value="{{ username }}"></label>
     <label>Password <input name="password" value="{{ password }}"></label>
-    <button class="btn btn-primary">Re-compute</button>
+    <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="btn btn-primary">Re-compute</button>
+        <button class="attack-btn btn-sm" onclick="runAttackPipeline('http_sniff')">🚀 Simulate Sniffing Attack</button>
+    </div>
   </form>
 </div>
 
@@ -41,10 +44,23 @@ algo: {{ data.https.server_stored_hash_demo.algo }}</pre>
   </div>
 </div>
 
-<div class="card">
-  <h3>Key takeaways</h3>
-  <ul class="findings">
-    {% for s in data.summary %}<li>{{ s }}</li>{% endfor %}
-  </ul>
+<div class="grid two">
+    <div class="card">
+        <h3>💡 Why is this dangerous?</h3>
+        <p>
+            When using <b>HTTP</b>, data is sent as plain text. Any attacker on the same network (public Wi-Fi, compromised router) can use tools like <b>Wireshark</b> to intercept and read your credentials instantly.
+        </p>
+        <div class="pred-box fail" style="margin-top: 10px;">
+            <b>Impact:</b> Credential Theft, Session Hijacking.
+        </div>
+    </div>
+    <div class="card">
+        <h3>🛡️ SOC Recommendations</h3>
+        <ul class="findings">
+            <li><b>Vulnerability:</b> Use of unencrypted communication channel (Port 80).</li>
+            <li><b>Risk:</b> HIGH. Complete loss of data confidentiality.</li>
+            <li><b>Mitigation:</b> Enforce <b>HSTS</b> and ensure all traffic is routed via <b>HTTPS</b> (TLS 1.2/1.3).</li>
+        </ul>
+    </div>
 </div>
 {% endblock %}

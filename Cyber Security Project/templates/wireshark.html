@@ -8,9 +8,11 @@
     We ship a pre-captured packet log (<code>data/sample_packets.json</code>)
     that mimics what Wireshark would show for a small retail LAN. The
     backend parses every packet, counts protocols / risk levels, and
-    highlights the ones that leak credentials or contain attack patterns.
-  </p>
-</div>
+    <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="btn btn-primary" id="start-capture" onclick="startLiveCapture()">📡 Start Live Capture</button>
+        <button class="attack-btn btn-sm" onclick="runAttackPipeline('wireshark_scan')">🚀 Simulate Port Scan</button>
+    </div>
+  </div>
 
 <div class="grid two">
   <div class="card">
@@ -48,19 +50,9 @@
           <th>Proto</th><th>Len</th><th>Info</th><th>Risk</th>
         </tr>
       </thead>
-      <tbody>
-        {% for p in data.packets %}
-          <tr class="row-{{ p.risk }}">
-            <td>{{ p.no }}</td>
-            <td>{{ p.time }}</td>
-            <td>{{ p.src_ip }}</td>
-            <td>{{ p.dst_ip }}</td>
-            <td><span class="pill">{{ p.protocol }}</span></td>
-            <td>{{ p.length }}</td>
-            <td class="mono">{{ p.info }}</td>
-            <td><span class="risk-{{ p.risk }}">{{ p.risk|upper }}</span></td>
-          </tr>
-        {% endfor %}
+      <tbody id="packet-tbody">
+        <!-- Live rows will be appended here -->
+        <tr id="empty-row"><td colspan="8" style="text-align:center; padding: 40px; color: var(--muted);">Click 'Start Live Capture' to begin monitoring traffic...</td></tr>
       </tbody>
     </table>
   </div>
@@ -76,4 +68,53 @@
   </ul>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const ALL_PACKETS = {{ data.packets|tojson }};
+    let captureRunning = false;
+
+    async function startLiveCapture() {
+        if (captureRunning) return;
+        captureRunning = true;
+        
+        const btn = document.getElementById('start-capture');
+        const tbody = document.getElementById('packet-tbody');
+        
+        btn.disabled = true;
+        btn.innerText = "🛰️ Capturing...";
+        tbody.innerHTML = '';
+        
+        showToast("Live Traffic Capture Started", "info");
+
+        for (const p of ALL_PACKETS) {
+            await new Promise(r => setTimeout(r, 400 + Math.random() * 600));
+            
+            const row = document.createElement('tr');
+            row.className = `row-${p.risk} log-entry`;
+            row.innerHTML = `
+                <td>${p.no}</td>
+                <td>${p.time}</td>
+                <td>${p.src_ip}</td>
+                <td>${p.dst_ip}</td>
+                <td><span class="pill">${p.protocol}</span></td>
+                <td>${p.length}</td>
+                <td class="mono">${p.info}</td>
+                <td><span class="risk-${p.risk}">${p.risk.toUpperCase()}</span></td>
+            `;
+            tbody.appendChild(row);
+            tbody.parentElement.parentElement.scrollTop = tbody.parentElement.parentElement.scrollHeight;
+            
+            if (p.risk === 'high') {
+                showToast(`High Risk Packet: ${p.protocol}`, "danger");
+            }
+        }
+        
+        btn.disabled = false;
+        btn.innerText = "📡 Restart Capture";
+        captureRunning = false;
+        showToast("Capture Session Complete", "success");
+    }
+</script>
 {% endblock %}

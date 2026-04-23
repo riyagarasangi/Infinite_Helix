@@ -8,9 +8,10 @@
     We ship two sample AWS-style IAM policies under <code>data/</code>:
     an intentionally-bad one (full access to everyone) and a properly
     scoped least-privilege policy. The backend scores each policy on
-    wildcards, public principals, and missing conditions.
-  </p>
-</div>
+    <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="attack-btn btn-sm" onclick="runAttackPipeline('iam_violation')">🚀 Simulate Policy Misuse</button>
+    </div>
+  </div>
 
 <div class="grid two">
   <div class="card fail">
@@ -43,9 +44,60 @@
 </div>
 
 <div class="card">
+  <h3>🔍 Interactive Policy Auditor</h3>
+  <p>Paste an AWS IAM policy below to analyze its security posture in real-time.</p>
+  <textarea id="policy-input" class="code" style="width: 100%; height: 200px; margin-top: 10px; resize: vertical;" placeholder='{ "Version": "2012-10-17", "Statement": [...] }'></textarea>
+  <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+      <button class="btn btn-primary" onclick="auditCustomPolicy()">Analyze Policy</button>
+      <div id="audit-result" class="pill" style="display: none;"></div>
+  </div>
+  <div id="audit-reasons" class="findings" style="margin-top: 15px;"></div>
+</div>
+
+<div class="card">
   <h3>Recommendations</h3>
   <ul class="findings">
     {% for r in data.recommendations %}<li>{{ r }}</li>{% endfor %}
-  </ul>
+</ul>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function auditCustomPolicy() {
+        const input = document.getElementById('policy-input').value;
+        const resultEl = document.getElementById('audit-result');
+        const reasonsEl = document.getElementById('audit-reasons');
+        
+        try {
+            const policy = JSON.parse(input);
+            let score = 0;
+            let reasons = [];
+            
+            policy.Statement.forEach(s => {
+                if (s.Effect === "Allow") {
+                    if (s.Action === "*" || (Array.isArray(s.Action) && s.Action.includes("*"))) {
+                        score += 50; reasons.push("CRITICAL: Wildcard Action '*' detected.");
+                    }
+                    if (s.Resource === "*" || (Array.isArray(s.Resource) && s.Resource.includes("*"))) {
+                        score += 30; reasons.push("HIGH: Wildcard Resource '*' detected.");
+                    }
+                }
+            });
+            
+            resultEl.style.display = 'block';
+            resultEl.innerText = `Risk Score: ${Math.min(score, 100)}/100`;
+            resultEl.className = `pill risk-${score < 25 ? 'low' : score < 60 ? 'medium' : 'high'}`;
+            
+            reasonsEl.innerHTML = reasons.map(r => `<li>${r}</li>`).join('');
+            showToast("Policy Audit Complete", "info");
+            
+            if (score >= 50) {
+                runAttackPipeline('iam_violation');
+            }
+        } catch (e) {
+            showToast("Invalid JSON Policy Format", "danger");
+        }
+    }
+</script>
 {% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Live Security Logs - SOC Dashboard{% endblock %}
+
+{% block header %}Live Security Events Dashboard{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <div>
+      <h3>Real-Time System Logs</h3>
+      <p>Monitoring all incoming traffic, authentication attempts, and system state changes.</p>
+    </div>
+    <div class="status-badge status-{{ 'secure' if security_mode == 'secure' else 'vulnerable' }}">
+      {{ security_mode.upper() }} MODE ACTIVE
+    </div>
+  </div>
+
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div class="terminal-header">
+        <div class="t-controls"><span></span><span></span><span></span></div>
+        <div class="t-title">SECURITY EVENT STREAM - NODE-01</div>
+        <div class="t-status">● LIVE</div>
+    </div>
+    <div id="log-terminal" class="terminal" style="border-radius: 0; border: none; height: 600px;">
+        <!-- Logs will be injected here -->
+        <div class="log-entry">
+          <span class="log-ts">[ --:--:-- ]</span>
+          <span class="log-type type-system">SYSTEM</span>
+          <span class="sev-info">Initialising connection to Security Engine...</span>
+        </div>
+    </div>
+  </div>
+
+  <div class="hint" style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+    <span class="pill">Auto-refresh: 2s</span>
+    <span>Terminal view automatically scrolls to newest events.</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function updateLogs() {
+    fetch('/api/logs')
+      .then(response => response.json())
+      .then(data => {
+        const terminal = document.getElementById('log-terminal');
+        terminal.innerHTML = '';
+        
+        data.forEach(log => {
+          const entry = document.createElement('div');
+          entry.className = 'log-entry';
+          
+          const typeClass = `type-${log.type.toLowerCase()}`;
+          const sevClass = `sev-${log.severity}`;
+          
+          entry.innerHTML = `
+            <span class="log-ts">[ ${log.timestamp} ]</span>
+            <span class="log-type ${typeClass}">${log.type.toUpperCase()}</span>
+            <span class="${sevClass}">${log.message}</span>
+          `;
+          terminal.appendChild(entry);
+        });
+      });
+  }
+
+  // Poll every 2 seconds
+  setInterval(updateLogs, 2000);
+  updateLogs();
+</script>
+{% endblock %}

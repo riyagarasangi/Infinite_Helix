@@ -1,69 +1,111 @@
 {% extends "base.html" %}
-{% block header %}Module 2 - SQL Injection on Billing Login{% endblock %}
+
+{% block title %}Module 2 - SQL Injection Audit{% endblock %}
+
+{% block header %}SQL Injection & Brute Force Simulation{% endblock %}
 
 {% block content %}
-<div class="card">
-  <h3>How it works</h3>
-  <p>
-    The billing system stores cashiers in a SQLite <code>users</code>
-    table. Two login functions live in <code>modules/billing_login.py</code>:
-  </p>
-  <ul>
-    <li><b>Vulnerable:</b> builds SQL by string concatenation.</li>
-    <li><b>Secure:</b> uses a parameterized query (<code>?</code> placeholders).</li>
-  </ul>
-  <p>
-    Try this payload in the <b>Vulnerable</b> tab to bypass login:
-    <code>username = admin' OR '1'='1 --</code> , <code>password = anything</code>.
-    Then switch to <b>Secure</b> and try the same payload - it will fail,
-    because the injection is treated as a literal string.
-  </p>
+<div class="grid two">
+  <!-- Simulation Control -->
+  <div class="card">
+    <h3>🔴 Real-Time Attack Simulation</h3>
+    <p>Trigger automated attack scripts to see how the system responds in its current mode.</p>
+    
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+      <button class="attack-btn" onclick="runAttackPipeline('sql_injection')">
+        <span>🚀</span> Simulate SQL Injection
+      </button>
+      <button class="attack-btn" style="background: linear-gradient(135deg, #f59e0b, #b45309);" onclick="runAttackPipeline('brute_force')">
+        <span>🔨</span> Simulate Brute Force
+      </button>
+    </div>
+    
+    <div class="hint" style="margin-top: 15px;">
+      <b>SQLi:</b> Attempts to bypass login using <code>' OR 1=1</code><br>
+      <b>Brute Force:</b> Simulates 50+ rapid login attempts.
+    </div>
+  </div>
+
+  <!-- Manual Testing -->
+  <div class="card">
+    <h3>🔍 Manual Attack Testing</h3>
+    <p>Enter a custom payload to test the login endpoint's vulnerability.</p>
+    
+    <div class="login-form" style="margin-top: 15px;">
+      <label>
+        Enter Payload
+        <input type="text" id="test-payload" placeholder="' OR '1'='1" value="' OR '1'='1">
+      </label>
+      <button class="btn btn-primary" onclick="runAttackPipeline('sql_injection', document.getElementById('test-payload').value)">Test Attack</button>
+    </div>
+    
+    <div class="hint" style="margin-top: 10px;">
+      The result will be logged in the <b>Live Security Logs</b>.
+    </div>
+  </div>
 </div>
 
 <div class="card">
-  <div class="tabs">
-    <a class="tab {% if mode == 'vulnerable' %}active{% endif %}"
-       href="?mode=vulnerable">Vulnerable login</a>
-    <a class="tab {% if mode == 'secure' %}active{% endif %}"
-       href="?mode=secure">Secure login</a>
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h3>Billing Login Interface (Interactive)</h3>
+    <div class="status-badge status-{{ 'secure' if security_mode == 'secure' else 'vulnerable' }}">
+      {{ security_mode.upper() }} PROTECTION ACTIVE
+    </div>
   </div>
+  
+  <p>This form demonstrates the difference between <b>vulnerable</b> (string concatenation) and <b>secure</b> (parameterized) SQL queries.</p>
 
-  <form method="post" class="login-form">
-    <input type="hidden" name="mode" value="{{ mode }}">
-    <label>Username
-      <input name="username" value="{{ username }}" placeholder="admin' OR '1'='1 --">
+  <form method="POST" class="login-form inline" style="margin-top: 20px;">
+    <input type="hidden" name="mode" value="{{ security_mode }}">
+    <label>
+      Username
+      <input type="text" name="username" value="{{ username }}" placeholder="admin / ' OR 1=1">
     </label>
-    <label>Password
-      <input name="password" value="{{ password }}" placeholder="anything">
+    <label>
+      Password
+      <input type="password" name="password" value="{{ password }}">
     </label>
-    <button class="btn {% if mode == 'vulnerable' %}btn-danger{% else %}btn-primary{% endif %}">
-      {% if mode == 'vulnerable' %}Try vulnerable login{% else %}Try secure login{% endif %}
-    </button>
+    <button type="submit" class="btn btn-primary">Login to Billing</button>
   </form>
 
-  <div class="hint">
-    Seeded users: <code>admin / admin123</code>,
-    <code>cashier / cash@123</code>, <code>manager / mgr2024</code>
-  </div>
-</div>
-
-{% if result %}
-<div class="card {% if result.success and mode == 'vulnerable' and result.rows|length > 1 %}warn{% elif result.success %}ok{% else %}fail{% endif %}">
-  <h3>Result</h3>
-  <p>{{ result.message }}</p>
-  <h4>SQL executed</h4>
-  <pre class="code">{{ result.query }}</pre>
-  {% if result.rows %}
-    <h4>Rows returned</h4>
-    <table class="tbl">
-      <thead><tr><th>ID</th><th>Username</th><th>Role</th></tr></thead>
-      <tbody>
-        {% for r in result.rows %}
-          <tr><td>{{ r.id }}</td><td>{{ r.username }}</td><td>{{ r.role }}</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  {% if result %}
+    <div class="card {% if result.success and security_mode == 'vulnerable' and result.rows|length > 1 %}fail{% elif result.success %}ok{% else %}fail{% endif %}" style="margin-top: 20px;">
+      <h3>Result: {{ 'SUCCESS ✅' if result.success else 'FAILED ❌' }}</h3>
+      <p>{{ result.message }}</p>
+      <h4>SQL executed</h4>
+      <pre class="code">{{ result.query }}</pre>
+      {% if result.rows %}
+        <h4>Rows returned</h4>
+        <table class="tbl">
+          <thead><tr><th>ID</th><th>Username</th><th>Role</th></tr></thead>
+          <tbody>
+            {% for r in result.rows %}
+              <tr><td>{{ r.id }}</td><td>{{ r.username }}</td><td>{{ r.role }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
   {% endif %}
 </div>
-{% endif %}
+
+<div class="grid two">
+    <div class="card">
+        <h3>💡 Why is this dangerous?</h3>
+        <p>
+            <b>SQL Injection</b> allows an attacker to manipulate the backend query logic. By injecting <code>' OR 1=1</code>, the <code>WHERE</code> clause becomes always true, granting access without a valid password.
+        </p>
+        <div class="pred-box fail" style="margin-top: 10px;">
+            <b>Impact:</b> Full Database Exposure, Account Takeover.
+        </div>
+    </div>
+    <div class="card">
+        <h3>🛡️ SOC Recommendations</h3>
+        <ul class="findings">
+            <li><b>Vulnerability:</b> User input directly interpolated into SQL strings.</li>
+            <li><b>Risk:</b> CRITICAL. Direct bypass of authentication logic.</li>
+            <li><b>Mitigation:</b> Use <b>Parameterized Queries</b> (Prepared Statements) to treat input as literal data, not executable code.</li>
+        </ul>
+    </div>
+</div>
 {% endblock %}

@@ -1,66 +1,96 @@
 {% extends "base.html" %}
-{% block header %}Module 4 - MQTT IoT Inventory Security{% endblock %}
+
+{% block title %}Module 4 - MQTT IoT Security{% endblock %}
+
+{% block header %}MQTT IoT Inventory Security Audit{% endblock %}
 
 {% block content %}
 <div class="card">
-  <h3>How it works</h3>
-  <p>
-    Store sensors (fridge temperature, shelf weight, entry door) talk to
-    a central controller over MQTT. We simulate two versions side by
-    side:
-  </p>
-  <ul>
-    <li><b>Insecure:</b> no auth, no TLS, plain payloads. Attacker can spoof messages.</li>
-    <li><b>Secure:</b> username/password + TLS 1.3 + HMAC-SHA256 signed payloads.</li>
-  </ul>
-  <button class="btn btn-primary" id="refreshMqtt">Refresh sensor feed</button>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <div>
+      <h3>Real-Time IoT Simulation</h3>
+      <p>Simulating store sensors (fridge, shelf, doors) communicating over MQTT.</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn btn-outline" id="refreshMqtt">🔄 Refresh Feed</button>
+      <button class="attack-btn btn-sm" onclick="runAttackPipeline('mqtt_malicious')">🚀 Simulate Spoofed Command</button>
+    </div>
+  </div>
+  
+  <div class="status-badge status-{{ 'secure' if security_mode == 'secure' else 'vulnerable' }}" style="margin-bottom: 20px;">
+    GLOBAL SECURITY: {{ security_mode.upper() }}
+  </div>
+
+  <div class="grid two">
+    <div class="card fail">
+      <h3>Insecure MQTT (Legacy)</h3>
+      <ul class="kv">
+        {% for k,v in data.insecure.config.items() %}
+          <li><span>{{ k }}</span><b>{{ v }}</b></li>
+        {% endfor %}
+      </ul>
+      <h4>Recent messages</h4>
+      <div class="table-wrap">
+        <table class="tbl mqtt-insecure">
+          <thead><tr><th>Time</th><th>Topic</th><th>Payload</th></tr></thead>
+          <tbody>
+            {% for m in data.insecure.messages %}
+              <tr><td>{{ m.timestamp }}</td><td>{{ m.topic }}</td><td class="mono">{{ m.payload }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <h4>Identified Vulnerabilities</h4>
+      <ul class="findings">{% for i in data.insecure.issues %}<li>{{ i }}</li>{% endfor %}</ul>
+    </div>
+
+    <div class="card ok">
+      <h3>Secure MQTT (NextGen)</h3>
+      <ul class="kv">
+        {% for k,v in data.secure.config.items() %}
+          <li><span>{{ k }}</span><b>{{ v }}</b></li>
+        {% endfor %}
+      </ul>
+      <h4>Recent messages</h4>
+      <div class="table-wrap">
+        <table class="tbl mqtt-secure">
+          <thead><tr><th>Time</th><th>Topic</th><th>Payload</th><th>HMAC Signature</th></tr></thead>
+          <tbody>
+            {% for m in data.secure.messages %}
+              <tr>
+                <td>{{ m.timestamp }}</td>
+                <td>{{ m.topic }}</td>
+                <td class="mono">{{ m.payload }}</td>
+                <td class="mono">{{ m.signature }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <h4>Security Controls</h4>
+      <ul class="findings">{% for i in data.secure.protections %}<li>{{ i }}</li>{% endfor %}</ul>
+    </div>
+  </div>
 </div>
 
 <div class="grid two">
-  <div class="card fail">
-    <h3>Insecure MQTT</h3>
-    <ul class="kv">
-      {% for k,v in data.insecure.config.items() %}
-        <li><span>{{ k }}</span><b>{{ v }}</b></li>
-      {% endfor %}
-    </ul>
-    <h4>Recent messages</h4>
-    <table class="tbl mqtt-insecure">
-      <thead><tr><th>Time</th><th>Topic</th><th>Payload</th></tr></thead>
-      <tbody>
-        {% for m in data.insecure.messages %}
-          <tr><td>{{ m.timestamp }}</td><td>{{ m.topic }}</td><td class="mono">{{ m.payload }}</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <h4>Issues</h4>
-    <ul class="findings">{% for i in data.insecure.issues %}<li>{{ i }}</li>{% endfor %}</ul>
-  </div>
-
-  <div class="card ok">
-    <h3>Secure MQTT</h3>
-    <ul class="kv">
-      {% for k,v in data.secure.config.items() %}
-        <li><span>{{ k }}</span><b>{{ v }}</b></li>
-      {% endfor %}
-    </ul>
-    <h4>Recent messages</h4>
-    <table class="tbl mqtt-secure">
-      <thead><tr><th>Time</th><th>Topic</th><th>Payload</th><th>Signature</th></tr></thead>
-      <tbody>
-        {% for m in data.secure.messages %}
-          <tr>
-            <td>{{ m.timestamp }}</td>
-            <td>{{ m.topic }}</td>
-            <td class="mono">{{ m.payload }}</td>
-            <td class="mono">{{ m.signature }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <h4>Protections</h4>
-    <ul class="findings">{% for i in data.secure.protections %}<li>{{ i }}</li>{% endfor %}</ul>
-  </div>
+    <div class="card">
+        <h3>💡 Why is this dangerous?</h3>
+        <p>
+            In retail IoT, MQTT brokers without authentication allow anyone to publish messages. An attacker can send an <b>'UNLOCK DOOR'</b> command, leading to physical theft or unauthorized access to the store.
+        </p>
+        <div class="pred-box fail" style="margin-top: 10px;">
+            <b>Impact:</b> Physical Breach, Inventory Theft.
+        </div>
+    </div>
+    <div class="card">
+        <h3>🛡️ SOC Recommendations</h3>
+        <ul class="findings">
+            <li><b>Vulnerability:</b> Unauthenticated MQTT broker & plain-text payloads.</li>
+            <li><b>Risk:</b> HIGH. Lack of message integrity verification.</li>
+            <li><b>Mitigation:</b> Enforce <b>TLS Encryption</b> and <b>HMAC-SHA256</b> signatures to ensure only trusted sensors can control hardware.</li>
+        </ul>
+    </div>
 </div>
 {% endblock %}
 
@@ -70,6 +100,7 @@ document.getElementById("refreshMqtt").addEventListener("click", async () => {
   const r = await fetch("/api/mqtt/refresh");
   const json = await r.json();
   renderMqttTables(json);
+  showToast("Sensor feed refreshed", "success");
 });
 </script>
 {% endblock %}

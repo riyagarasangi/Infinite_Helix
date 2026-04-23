@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>{% block title %}Smart Retail Store Security Audit{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   {% block head %}{% endblock %}
 </head>
-<body>
+<body class="mode-{{ security_mode }}">
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-logo">SR</div>
@@ -17,8 +18,31 @@
       </div>
     </div>
 
+    <div class="risk-widget">
+      <div class="risk-label">System Risk Score</div>
+      <div class="risk-value-wrap">
+        <span id="global-risk-score" class="risk-{{ 'low' if risk_score.score < 30 else 'medium' if risk_score.score < 70 else 'high' }}">{{ risk_score.score }}</span>
+        <span class="risk-max">/ 100</span>
+      </div>
+      <div class="risk-bar-bg"><div id="risk-bar-fill" class="risk-bar-fill risk-{{ 'low' if risk_score.score < 30 else 'medium' if risk_score.score < 70 else 'high' }}" style="width: {{ risk_score.score }}%;"></div></div>
+      
+      <div class="risk-breakdown" id="risk-breakdown">
+        {% for item in risk_score.breakdown %}
+          <div class="breakdown-item"><span>{{ item.factor }}</span><b>+{{ item.points }}</b></div>
+        {% endfor %}
+      </div>
+    </div>
+
     <nav>
-      <a class="nav-item {% if not active %}active{% endif %}" href="/">Dashboard</a>
+      <a class="nav-item {% if active == 'dashboard' %}active{% endif %}" href="/">
+        <span class="nav-icon">🏠</span>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item {% if active == 'live_logs' %}active{% endif %}" href="/live-logs">
+        <span class="nav-icon">📜</span>
+        <span>Live Security Logs</span>
+      </a>
+      <div class="nav-divider">MODULES</div>
       {% for m in modules %}
         <a class="nav-item {% if active == m.id %}active{% endif %}" href="{{ m.url }}">
           <span class="nav-icon">{{ m.icon }}</span>
@@ -27,21 +51,64 @@
       {% endfor %}
     </nav>
 
-    <div class="sidebar-foot">Academic demo - do NOT use in production.</div>
+    <div class="sidebar-foot">
+      <button onclick="resetSystem()" class="btn btn-sm btn-outline" style="width: 100%; margin-bottom: 10px;">Reset System</button>
+      Academic demo - SOC Dashboard v2.0
+    </div>
   </aside>
 
   <main class="main">
     <header class="topbar">
       <h1>{% block header %}Smart Retail Store Security Audit{% endblock %}</h1>
-      <div class="topbar-meta">Flask &middot; SQLite &middot; scikit-learn &middot; MQTT</div>
+      
+      <div class="topbar-actions">
+        <div id="health-indicator" class="health-indicator health-{{ risk_score.health.lower().replace(' ', '-') }}">
+          <div class="health-pulse"></div>
+          <span class="health-text">SYSTEM {{ risk_score.health }}</span>
+        </div>
+
+        <div class="toggle-container">
+          <span class="toggle-label {{ 'active' if security_mode == 'vulnerable' else '' }}">Vulnerable</span>
+          <label class="switch">
+            <input type="checkbox" id="security-toggle" {% if security_mode == 'secure' %}checked{% endif %} onchange="toggleSecurity()">
+            <span class="slider round"></span>
+          </label>
+          <span class="toggle-label {{ 'active' if security_mode == 'secure' else '' }}">Secure</span>
+        </div>
+      </div>
     </header>
 
     <section class="content">
+      <!-- Attack Pipeline Overlay -->
+      <div id="pipeline-overlay" class="pipeline-overlay hidden">
+        <div class="pipeline-card">
+          <div class="pipeline-header">
+            <h3>Live Attack Pipeline</h3>
+            <span class="pipeline-close" onclick="closePipeline()">&times;</span>
+          </div>
+          <div class="pipeline-steps">
+            <div class="p-step" id="p-step-1"><div class="p-icon">🚀</div><div class="p-label">ATTACK</div></div>
+            <div class="p-connector"></div>
+            <div class="p-step" id="p-step-2"><div class="p-icon">🔍</div><div class="p-label">DETECT</div></div>
+            <div class="p-connector"></div>
+            <div class="p-step" id="p-step-3"><div class="p-icon">🧠</div><div class="p-label">ANALYZE</div></div>
+            <div class="p-connector"></div>
+            <div class="p-step" id="p-step-4"><div class="p-icon">🛡️</div><div class="p-label">DEFEND</div></div>
+            <div class="p-connector"></div>
+            <div class="p-step" id="p-step-5"><div class="p-icon">🛑</div><div class="p-label">BLOCK</div></div>
+          </div>
+          <div id="pipeline-status" class="pipeline-status">Initiating Analysis...</div>
+        </div>
+      </div>
+
       {% block content %}{% endblock %}
     </section>
   </main>
 
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/soc_engine.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>
+

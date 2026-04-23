@@ -62,6 +62,7 @@ def predict_one(record: dict) -> dict:
     score = float(pipe.decision_function(row)[0])
     return {
         "label": "anomaly" if pred == -1 else "normal",
+        "is_anomaly": pred == -1,
         "score": round(score, 4),
         "input": record,
     }

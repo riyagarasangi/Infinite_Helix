@@ -1,20 +1,31 @@
 {% extends "base.html" %}
-{% block header %}Dashboard{% endblock %}
+
+{% block title %}SOC Command Center - Smart Retail Security{% endblock %}
+
+{% block header %}Security Operations Center (SOC) Command Center{% endblock %}
 
 {% block content %}
 <div class="hero">
-  <h2>Smart Retail Store Security Audit</h2>
-  <p>
-    This project audits a fictional smart retail store across six
-    cybersecurity angles: network sniffing, SQL injection, transport
-    encryption, IoT/MQTT, machine-learning anomaly detection, and cloud
-    IAM. Pick any module on the left to explore the attack and the fix.
-  </p>
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h2>Smart Retail Store Security Overview</h2>
+      <p>
+        Welcome to the central command center. This dashboard provides real-time visibility into the security posture of our retail environment, from IoT sensors to cloud infrastructure.
+      </p>
+    </div>
+    <div class="status-badge status-{{ 'secure' if security_mode == 'secure' else 'vulnerable' }}" style="font-size: 16px; padding: 10px 20px;">
+      SYSTEM STATUS: {{ security_mode.upper() }}
+    </div>
+  </div>
+  
   <div class="hero-stats">
-    <div class="stat"><div class="stat-num">6</div><div class="stat-lbl">Modules</div></div>
-    <div class="stat"><div class="stat-num">2</div><div class="stat-lbl">Attack demos</div></div>
-    <div class="stat"><div class="stat-num">1</div><div class="stat-lbl">ML model</div></div>
-    <div class="stat"><div class="stat-num">2</div><div class="stat-lbl">IAM policies</div></div>
+    <div class="stat"><div class="stat-num">6</div><div class="stat-lbl">Active Modules</div></div>
+    <div class="stat"><div class="stat-num risk-high">3</div><div class="stat-lbl">Simulation Engines</div></div>
+    <div class="stat"><div class="stat-num">100%</div><div class="stat-lbl">Monitoring Coverage</div></div>
+    <div class="stat"><div class="stat-num risk-low">ACTIVE</div><div class="stat-lbl">ML Engine</div></div>
+    <div style="margin-left: auto;">
+        <button class="attack-btn" onclick="runFullScenario()">🚀 Run Full Attack Simulation</button>
+    </div>
   </div>
 </div>
 
@@ -24,8 +35,79 @@
       <div class="card-icon">{{ m.icon }}</div>
       <h3>{{ m.title }}</h3>
       <p>{{ m.desc }}</p>
-      <span class="open">Open module -&gt;</span>
+      <div style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <span class="open">ENTER MODULE</span>
+        <span class="pill" style="background: rgba(59,130,246,0.1); color: var(--primary-2);">REAL-TIME</span>
+      </div>
     </a>
   {% endfor %}
 </div>
+
+<div class="grid two" style="margin-top: 20px;">
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3>🛡️ Attack Timeline</h3>
+        <span class="pill">Real-Time</span>
+    </div>
+    <div id="attack-timeline" class="timeline-wrap" style="height: 400px; overflow-y: auto;">
+      <!-- Timeline events injected here -->
+       <div class="log-entry">Initialising Timeline...</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3>📊 Risk & Performance Audit</h3>
+        <b class="risk-low">HEALTHY</b>
+    </div>
+    
+    <div class="stat-big" style="background: var(--bg-soft); border-radius: 12px; margin-bottom: 15px;">
+        <div class="stat-lbl">Before vs After Mitigation</div>
+        <div style="display: flex; align-items: center; justify-content: space-around; padding: 10px;">
+            <div style="text-align: center;">
+                <div class="stat-num risk-high" id="peak-risk-val">{{ risk_score.peak }}</div>
+                <div class="stat-lbl">Peak Risk</div>
+            </div>
+            <div style="font-size: 24px; color: var(--muted);">→</div>
+            <div style="text-align: center;">
+                <div class="stat-num risk-low" id="current-risk-val">{{ risk_score.score }}</div>
+                <div class="stat-lbl">Current Risk</div>
+            </div>
+        </div>
+    </div>
+
+    <ul class="kv">
+      <li><span>WAF Protection</span><b class="{{ 'risk-low' if security_mode == 'secure' else 'risk-high' }}">{{ 'ACTIVE' if security_mode == 'secure' else 'DISABLED' }}</b></li>
+      <li><span>SQL Sanitization</span><b class="{{ 'risk-low' if security_mode == 'secure' else 'risk-high' }}">{{ 'ENABLED' if security_mode == 'secure' else 'VULNERABLE' }}</b></li>
+      <li><span>IoT HMAC Auth</span><b class="{{ 'risk-low' if security_mode == 'secure' else 'risk-high' }}">{{ 'ENFORCED' if security_mode == 'secure' else 'NONE' }}</b></li>
+      <li><span>TLS Encryption</span><b class="{{ 'risk-low' if security_mode == 'secure' else 'risk-high' }}">{{ 'TLS 1.3' if security_mode == 'secure' else 'INSECURE HTTP' }}</b></li>
+      <li><span>IAM Policies</span><b class="{{ 'risk-low' if security_mode == 'secure' else 'risk-high' }}">{{ 'LEAST PRIVILEGE' if security_mode == 'secure' else 'FULL ACCESS' }}</b></li>
+    </ul>
+    <button onclick="toggleSecurity()" class="btn {{ 'btn-primary' if security_mode == 'vulnerable' else 'btn-danger' }}" style="width: 100%; margin-top: 20px;">
+      SWITCH TO {{ 'SECURE' if security_mode == 'vulnerable' else 'VULNERABLE' }} MODE
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Dashboard specific updates
+  async function updateDashboardStats() {
+      const response = await fetch('/api/risk-score');
+      const data = await response.json();
+      
+      document.getElementById('peak-risk-val').innerText = data.peak;
+      document.getElementById('current-risk-val').innerText = data.score;
+      
+      const peakEl = document.getElementById('peak-risk-val');
+      const currEl = document.getElementById('current-risk-val');
+      
+      peakEl.className = `stat-num risk-${data.peak < 30 ? 'low' : data.peak < 70 ? 'medium' : 'high'}`;
+      currEl.className = `stat-num risk-${data.score < 30 ? 'low' : data.score < 70 ? 'medium' : 'high'}`;
+  }
+  
+  setInterval(updateDashboardStats, 3000);
+  updateDashboardStats();
+</script>
 {% endblock %}
